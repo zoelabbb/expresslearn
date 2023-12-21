@@ -34,6 +34,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: Install nodemon globally
+        run: npm install -g nodemon
+
       - name: Install Dependencies
         run: npm install
 
