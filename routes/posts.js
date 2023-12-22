@@ -103,4 +103,67 @@ router.get('/(:id)', function (req, res) {
     })
 })
 
+/** Update POST
+ * PUT /posts/update/:id
+ * */
+router.patch('/update/(:id)',[
+
+    // Validation
+    body('title').notEmpty(),
+    body('content').notEmpty(),
+], (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            errors: errors.array(),
+        });
+    }
+
+    let id = req.params.id;
+
+    // data formData
+    const formData = {
+        title: req.body.title,
+        content: req.body.content,
+    };
+
+    connection.query('UPDATE post SET ? WHERE id = ?', [formData, id], function (err, result) {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({
+                status: false,
+                message: 'Internal Server Error',
+            });
+        } else {
+            return res.status(200).json({
+                status: true,
+                message: 'Update Data Successfully',
+                data: formData
+            });
+        }
+    })
+})
+
+router.delete('/delete/(:id)', function (req, res) {
+    
+    let id = req.params.id;
+
+    connection.query(`DELETE FROM post WHERE id = ${id}`, function (err, result) {
+
+        if (err) {
+            console.error(err);
+            return res.status(500).json({
+                status: false,
+                message: 'Internal Server Error',
+            });
+        } else {
+            return res.status(200).json({
+                status: true,
+                message: 'Delete Data Successfully',
+            });
+        }
+    })
+})
+
 module.exports = router;
