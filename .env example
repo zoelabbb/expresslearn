@@ -1,0 +1,15 @@
+# App
+APP_NAME = YOUR_APP_NAME
+
+# Port
+APP_PORT = PORT
+
+# Environment
+NODE_ENV = development
+
+# Database
+DB_HOST = localhost
+DB_PORT = PORT_DB
+DB_USER = YOUR_USERNAME
+DB_PASS = YOUR_PASSWORD
+DB_NAME = YOUR_DATABASE_NAME
