@@ -34,7 +34,7 @@ router.post('/store', [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).json({
+        return res.status(422).json({
             errors: errors.array(),
         });
     }
@@ -45,28 +45,23 @@ router.post('/store', [
         content: req.body.content,
     };
 
-    // Log values before the insert query
-    console.log('formData:', formData);
-
     // Insert query
-    connection.query('INSERT INTO post SET ?', formData, function (err, result) {
+    connection.query('INSERT INTO posts SET ?', formData, function (err, rows) {
+        //if(err) throw err
         if (err) {
-            console.error(err);
             return res.status(500).json({
                 status: false,
                 message: 'Internal Server Error',
-            });
+            })
         } else {
-            // Assuming you want to return the inserted data
-            const insertedData = { id: result.insertId, ...formData };
-            
             return res.status(201).json({
                 status: true,
                 message: 'Insert Data Successfully',
-                data: insertedData,
-            });
+                data: rows[0]
+            })
         }
-    });
+    })
+
 });
 
 /**
@@ -106,7 +101,7 @@ router.get('/(:id)', function (req, res) {
 /** Update POST
  * PUT /posts/update/:id
  * */
-router.patch('/update/(:id)',[
+router.patch('/update/(:id)', [
 
     // Validation
     body('title').notEmpty(),
@@ -135,6 +130,11 @@ router.patch('/update/(:id)',[
                 status: false,
                 message: 'Internal Server Error',
             });
+        } else if (result.affectedRows === 0) {
+            return res.status(404).json({
+                status: false,
+                message: 'Opps.. Data Not Found',
+            });
         } else {
             return res.status(200).json({
                 status: true,
@@ -146,16 +146,21 @@ router.patch('/update/(:id)',[
 })
 
 router.delete('/delete/(:id)', function (req, res) {
-    
+
     let id = req.params.id;
 
-    connection.query(`DELETE FROM post WHERE id = ${id}`, function (err, result) {
+    connection.query(`DELETE FROM post WHERE id = ${id}`, function (err, rows) {
 
         if (err) {
             console.error(err);
             return res.status(500).json({
                 status: false,
                 message: 'Internal Server Error',
+            });
+        } else if (rows.affectedRows === 0) {
+            return res.status(404).json({
+                status: false,
+                message: 'Opps.. Data Not Found, try to add data first',
             });
         } else {
             return res.status(200).json({
