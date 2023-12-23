@@ -6,7 +6,9 @@ const { body, validationResult } = require('express-validator'); //import expres
 const connection = require('../config/database')
 
 /**
- * INDEX POSTS
+ * Method   : GET
+ * Endpoint : api/posts
+ * Description : Get all list posts
  */
 router.get('/', function (req, res) {
     connection.query('SELECT * FROM post ORDER BY id desc', function (err, rows) {
@@ -25,47 +27,36 @@ router.get('/', function (req, res) {
     });
 });
 
-// Add store POST with endpoint store
-router.post('/store', [
-    // Validation
-    body('title').notEmpty(),
-    body('content').notEmpty(),
-], (req, res) => {
-    const errors = validationResult(req);
+/**
+ * Method   : POST
+ * Endpoint : api/posts/store
+ * Description : Store post
+ */
+router.post('/store', (req, res) => {
+    const { title, content } = req.body;
 
-    if (!errors.isEmpty()) {
-        return res.status(422).json({
-            errors: errors.array(),
-        });
+    if (!title || !content) {
+        return res.status(400).json({ message: 'Title and content are required.' });
     }
 
-    // Define formData
-    const formData = {
-        title: req.body.title,
-        content: req.body.content,
-    };
+    const postData = { title, content };
 
-    // Insert query
-    connection.query('INSERT INTO posts SET ?', formData, function (err, rows) {
-        //if(err) throw err
+    connection.query('INSERT INTO post SET ?', postData, (err, result) => {
         if (err) {
-            return res.status(500).json({
-                status: false,
-                message: 'Internal Server Error',
-            })
-        } else {
-            return res.status(201).json({
-                status: true,
-                message: 'Insert Data Successfully',
-                data: rows[0]
-            })
+            console.error('Error inserting data:', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
         }
-    })
 
+        const postId = result.insertId;
+        res.status(201).json({ message: 'Data inserted successfully', postId });
+    });
 });
 
+
 /**
- * SHOW POST
+ * Method   : GET
+ * Endpoint : api/posts/(:id)
+ * Description : Get detail post
  */
 router.get('/(:id)', function (req, res) {
 
@@ -98,12 +89,14 @@ router.get('/(:id)', function (req, res) {
     })
 })
 
-/** Update POST
- * PUT /posts/update/:id
+/**
+ * Method   : PUT
+ * Endpoint : api/posts/update/:id
+ * Description : Update post
  * */
 router.patch('/update/(:id)', [
 
-    // Validation
+    // Express Validation
     body('title').notEmpty(),
     body('content').notEmpty(),
 ], (req, res) => {
@@ -145,6 +138,11 @@ router.patch('/update/(:id)', [
     })
 })
 
+/**
+ * Method   : DELETE
+ * Endpoint : api/posts/delete/(:id)
+ * Description : Delete post by id
+ */
 router.delete('/delete/(:id)', function (req, res) {
 
     let id = req.params.id;
